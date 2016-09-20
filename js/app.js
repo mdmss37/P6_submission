@@ -1,3 +1,4 @@
+// These stations are major stations in Tokyo, Japan
 
 var initialStations = [
     {
@@ -34,12 +35,24 @@ function Model(station){
     this.lon = station.lon;
     this.visible = ko.observable(true);
 
-    self.contentString = "test";
+    self.contentString = "";
 
-    // Wikipedia ajax requesting code
-    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json&callback=wikiCallback';
+    this.infowindow = new google.maps.InfoWindow({
+        content: self.contentString
+    });
 
-    // // after waiting 8000ms, change text to fail message
+    // Wikipedia ajax requesting code starts
+
+    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json';
+
+    // In case of Shinjuku Station
+    // https://en.wikipedia.org/w/api.php?action=opensearch&search=' + "Shinjuku Station" + '&format=json'
+    // ["ShinjukuStation",["Shinjuku Station"],
+    // ["Shinjuku Station (\u65b0\u5bbf\u99c5, Shinjuku-eki) is a major railway station in Shinjuku and Shibuya wards in Tokyo, Japan."],
+    // ["https://en.wikipedia.org/wiki/Shinjuku_Station"]]
+
+
+    // after waiting 8000ms, change text to fail message
     var wikiRequestTimeout = setTimeout(function(){
         this.contentString = this.contentString + 'failed to get wikipedia resources';
     }, 8000);
@@ -51,25 +64,21 @@ function Model(station){
         // https://www.mediawiki.org/wiki/API:Main_page/ja
         success: function(response) {
             var articleList = response[1];
-            console.log(response)
+            console.log(response.length);
+            var articleTitle = articleList[0];
 
-            for (var i = 0; i < 3; i++) {
-                articleStr = articleList[i]
-                var url = 'https://en.wikipedia.org/wiki/' + articleStr;
-                self.contentString = self.contentString + '<div><a href="' + url + '">' + articleStr + '</a></div>'
-                console.log(self.contentString);
-            };
+            //TODO: Want to add explanation of article to info window
+            var url = 'https://en.wikipedia.org/wiki/' + articleTitle;
+            self.contentString = self.contentString + '<div><a href="' + url + '">' + articleTitle + '</a></div>';
 
+            self.infowindow = new google.maps.InfoWindow({
+                content: self.contentString
+            });
+            // clear timeout in case data correctly is retrieved
             clearTimeout(wikiRequestTimeout);
         }
     });
-
-    //Need to fix: self.contentString does not contain anything.
-    console.log("outside of the loop" + self.contentString)
-
-    this.infowindow = new google.maps.InfoWindow({
-        content: self.contentString
-    });
+    // Wikipedia ajax requesting code ends
 
     this.marker = new google.maps.Marker({
         position: new google.maps.LatLng(station.lat, station.lon),
@@ -134,7 +143,6 @@ function AppViewModel() {
     }, self);
 
     this.mapElem = document.getElementById('map');
-    // this.mapElem.style.height = window.innerHeight - 50;
 }
 
 function initApp() {
