@@ -1,5 +1,7 @@
 // These stations are major stations in Tokyo, Japan
 
+var alerted = false;
+
 var initialStations = [
     {
         name: "Shinjuku Station",
@@ -77,12 +79,17 @@ function Model(station){
         }
     );
 
-    // error handling works but called as many as the number of Model, need fix
+    // use alerted to check already show alert or not
     request.fail(function() {
-        console.log("failed")
-        alert("Wikipedia API can not be called properly, please refresh browser and try again.");
+        if (alerted === false) {
+            console.log("failed")
+            alert("Wikipedia API can not be called properly, please refresh browser and try again.");
+            alerted = true
+        } else {
+            console.log("failed")
         }
-    )
+        }
+    );
 
     // Wikipedia ajax requesting code ends
 
