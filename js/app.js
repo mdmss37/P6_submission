@@ -43,7 +43,7 @@ function Model(station){
 
     // Wikipedia ajax requesting code starts
 
-    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json';
+    var wikiUrl = 'https://n.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json';
 
     // In case of Shinjuku Station
     // https://en.wikipedia.org/w/api.php?action=opensearch&search=' + "Shinjuku Station" + '&format=json'
@@ -53,31 +53,37 @@ function Model(station){
 
 
     // after waiting 8000ms, change text to fail message
-    var wikiRequestTimeout = setTimeout(function(){
-        this.contentString = this.contentString + 'failed to get wikipedia resources';
-    }, 8000);
+    // var wikiRequestTimeout = setTimeout(function(){
+    //     this.contentString = this.contentString + 'failed to get wikipedia resources';
+    // }, 8000);
 
-    $.ajax({
+    var request =$.ajax({
         url: wikiUrl,
         dataType: "jsonp",
-        // jsonp: "callback";
-        // https://www.mediawiki.org/wiki/API:Main_page/ja
-        success: function(response) {
-            var articleList = response[1];
-            console.log(response.length);
-            var articleTitle = articleList[0];
-
-            //TODO: Want to add explanation of article to info window
-            var url = 'https://en.wikipedia.org/wiki/' + articleTitle;
-            self.contentString = self.contentString + '<div><a href="' + url + '">' + articleTitle + '</a></div>';
-
-            self.infowindow = new google.maps.InfoWindow({
-                content: self.contentString
-            });
-            // clear timeout in case data correctly is retrieved
-            clearTimeout(wikiRequestTimeout);
-        }
     });
+
+    request.done(function(response) {
+        var articleList = response[1];
+        console.log(response.length);
+        var articleTitle = articleList[0];
+
+        //TODO: Want to add explanation of article to info window
+        var url = 'https://en.wikipedia.org/wiki/' + articleTitle;
+        self.contentString = self.contentString + '<div><a href="' + url + '">' + articleTitle + '</a></div>';
+
+        self.infowindow = new google.maps.InfoWindow({
+            content: self.contentString
+        })
+        }
+    );
+
+    // error handling works but called as many as the number of Model, need fix
+    request.fail(function() {
+        console.log("failed")
+        alert("Wikipedia API can not be called properly, please refresh browser and try again.");
+        }
+    )
+
     // Wikipedia ajax requesting code ends
 
     this.marker = new google.maps.Marker({
@@ -86,18 +92,50 @@ function Model(station){
         title: station.name
     });
 
+    // Tip: Instead of setMap, you can also use setVisible(true|false),
+    // which only shows/hides the marker instead of adding/removing it to/from the map.
+
+    // updated code
     this.showMarker = ko.computed(function() {
         if(this.visible() === true) {
-            this.marker.setMap(map);
+            this.marker.setVisible(true);
         } else {
-            this.marker.setMap(null);
+            this.marker.setVisible(false);
         }
         return true;
     }, this);
 
-    this.bounce = function(place) {
+    // previous code
+    // this.showMarker = ko.computed(function() {
+    //     if(this.visible() === true) {
+    //         this.marker.setMap(map);
+    //     } else {
+    //         this.marker.setMap(null);
+    //     }
+    //     return true;
+    // }, this);
+
+    // Tip: Right now this function will be re-created for every instances of this class.
+    // It would be cleaner and more memory-efficient to convert this to a method you learned about in this course for that, i.e.:
+    // Location.prototype.bounce = function() {
+    // // "this" is the current instance
+    // };
+    // Because of the prototype chain, the instances can use it as their own function.
+
+    // below is previous code.
+
+    // this.bounce = function(place) {
+    //     google.maps.event.trigger(self.marker, 'click');
+    // };
+
+    // below is updated code, still not sure how this is working. need more investigation.
+
+    Model.prototype.bounce = function() {
+        this.bounce = function(place) {
         google.maps.event.trigger(self.marker, 'click');
     };
+    };
+
 
     this.marker.addListener('click', function() {
         self.infowindow.open(map, this);
