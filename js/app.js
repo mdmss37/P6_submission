@@ -1,6 +1,7 @@
-// These stations are major stations in Tokyo, Japan
-
+// This will be used to keep track of alert is done or not when wikipedia API error
 var alerted = false;
+
+// These stations are major stations in Tokyo, Japan
 
 var initialStations = [
     {
@@ -45,19 +46,13 @@ function Model(station){
 
     // Wikipedia ajax requesting code starts
 
-    var wikiUrl = 'https://n.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json';
+    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json';
 
     // In case of Shinjuku Station
     // https://en.wikipedia.org/w/api.php?action=opensearch&search=' + "Shinjuku Station" + '&format=json'
     // ["ShinjukuStation",["Shinjuku Station"],
     // ["Shinjuku Station (\u65b0\u5bbf\u99c5, Shinjuku-eki) is a major railway station in Shinjuku and Shibuya wards in Tokyo, Japan."],
     // ["https://en.wikipedia.org/wiki/Shinjuku_Station"]]
-
-
-    // after waiting 8000ms, change text to fail message
-    // var wikiRequestTimeout = setTimeout(function(){
-    //     this.contentString = this.contentString + 'failed to get wikipedia resources';
-    // }, 8000);
 
     var request =$.ajax({
         url: wikiUrl,
@@ -130,7 +125,6 @@ function Model(station){
     // Because of the prototype chain, the instances can use it as their own function.
 
     // below is previous code.
-
     // this.bounce = function(place) {
     //     google.maps.event.trigger(self.marker, 'click');
     // };
@@ -192,6 +186,10 @@ function AppViewModel() {
 
 function initApp() {
     ko.applyBindings(new AppViewModel());
+}
+
+function googleError() {
+    alert("Failed to call Google map API, please check your internet coneection.");
 }
 
 // below codes for refference from google developer site

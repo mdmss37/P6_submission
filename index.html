@@ -57,8 +57,9 @@
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/app.js"></script>
     <script type="text/javascript" src="js/knockout-3.4.0.js"></script>
+    <!-- incase failed to load API, function googleError will be called -->
     <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEyPNxeGjqWzsIJqxoFdU696GLvtzj6MQ&callback=initApp">
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEyPNxeGjqWzsIJqxoFdU696GLvtzj6MQ&callback=initApp" onerror="googleError()">
     </script>
 
 </body>
