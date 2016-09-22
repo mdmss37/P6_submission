@@ -1,3 +1,9 @@
+// Constant which will be used in google map initialization
+MAPSETTING = {
+    zoom: 12,
+    center: {lat: 35.697957, lng: 139.755399}
+}
+
 // This will be used to keep track of alert is done or not when wikipedia API error
 var alerted = false;
 
@@ -33,20 +39,20 @@ var initialStations = [
 
 function Model(station){
     var self = this;
-    this.name = station.name;
-    this.lat = station.lat;
-    this.lon = station.lon;
-    this.visible = ko.observable(true);
+    self.name = station.name;
+    self.lat = station.lat;
+    self.lon = station.lon;
+    self.visible = ko.observable(true);
 
     self.contentString = "";
 
-    this.infowindow = new google.maps.InfoWindow({
+    self.infowindow = new google.maps.InfoWindow({
         content: self.contentString
     });
 
     // Wikipedia ajax requesting code starts
 
-    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + this.name + '&format=json';
+    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + self.name + '&format=json';
 
     // In case of Shinjuku Station
     // https://en.wikipedia.org/w/api.php?action=opensearch&search=' + "Shinjuku Station" + '&format=json'
@@ -88,7 +94,7 @@ function Model(station){
 
     // Wikipedia ajax requesting code ends
 
-    this.marker = new google.maps.Marker({
+    self.marker = new google.maps.Marker({
         position: new google.maps.LatLng(station.lat, station.lon),
         map: map,
         title: station.name
@@ -97,25 +103,28 @@ function Model(station){
     // Tip: Instead of setMap, you can also use setVisible(true|false),
     // which only shows/hides the marker instead of adding/removing it to/from the map.
 
-    // updated code
-    this.showMarker = ko.computed(function() {
-        if(this.visible() === true) {
-            this.marker.setVisible(true);
-        } else {
-            this.marker.setVisible(false);
-        }
-        return true;
-    }, this);
+    // Need to find the way to hide infowindow when marker is hidden
 
-    // previous code
-    // this.showMarker = ko.computed(function() {
-    //     if(this.visible() === true) {
-    //         this.marker.setMap(map);
+    // self.showMarker = ko.computed(function() {
+    //     if(self.visible() === true) {
+    //         self.marker.setVisible(true);
+    //         // self.marker.showInfoWindow();
     //     } else {
-    //         this.marker.setMap(null);
+    //         self.marker.setVisible(false);
+    //         self.InfoWindow.close();
     //     }
     //     return true;
-    // }, this);
+    // }, self);
+
+    // keep previous code for now
+    self.showMarker = ko.computed(function() {
+        if(self.visible() === true) {
+            self.marker.setMap(map);
+        } else {
+            self.marker.setMap(null);
+        }
+        return true;
+    }, self);
 
     // Tip: Right now this function will be re-created for every instances of this class.
     // It would be cleaner and more memory-efficient to convert this to a method you learned about in this course for that, i.e.:
@@ -131,19 +140,20 @@ function Model(station){
 
     // below is updated code, still not sure how this is working. need more investigation.
 
+    // image: Model.AkihabaraStation.bounce
     Model.prototype.bounce = function() {
-        this.bounce = function(place) {
+        // we store the value of this
+        // this refers to the current instance
+        var self = this;
         google.maps.event.trigger(self.marker, 'click');
     };
-    };
 
-
-    this.marker.addListener('click', function() {
+    self.marker.addListener('click', function() {
         self.infowindow.open(map, this);
         self.marker.setAnimation(google.maps.Animation.BOUNCE);
         setTimeout(function() {
             self.marker.setAnimation(null);
-        }, 3000);
+        }, 2100); // one bounce takes 700ms, so set as muliplication of 700ms, bounce 3times
     });
 };
 
@@ -151,20 +161,20 @@ function Model(station){
 function AppViewModel() {
     var self = this;
 
-    this.searchTerm = ko.observable("");
+    self.searchTerm = ko.observable("");
 
-    this.stationList = ko.observableArray([]);
+    self.stationList = ko.observableArray([]);
 
-    map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 12,
-            center: {lat: 35.697957, lng: 139.755399}
-    });
+    // Developer-to-Developer tip: I'd move these into a SETTINGS constant
+    // and to the top of the file or even better, to a separate file.
+    // This way if you want to change these in the future, you won't have to dig deep in your code.
+    map = new google.maps.Map(document.getElementById('map'), MAPSETTING);
 
     initialStations.forEach(function(station){
         self.stationList.push( new Model(station));
     });
 
-    this.filteredList = ko.computed( function() {
+    self.filteredList = ko.computed( function() {
         var filter = self.searchTerm().toLowerCase();
         if (!filter) {
             self.stationList().forEach(function(station){
@@ -181,7 +191,7 @@ function AppViewModel() {
         }
     }, self);
 
-    this.mapElem = document.getElementById('map');
+    self.mapElem = document.getElementById('map');
 }
 
 function initApp() {
