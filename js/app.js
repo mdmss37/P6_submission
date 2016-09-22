@@ -138,7 +138,7 @@ function Model(station){
     //     google.maps.event.trigger(self.marker, 'click');
     // };
 
-    // below is updated code, still not sure how this is working. need more investigation.
+    // below is updated code, will take udacity cource for OO javascript
 
     // image: Model.AkihabaraStation.bounce
     Model.prototype.bounce = function() {
